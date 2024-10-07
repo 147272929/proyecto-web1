@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Estilos básicos */
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .login-container {
+            max-width: 300px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        input, select {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Iniciar Sesión</h2>
+        <form onsubmit="return login()">
+            <input type="text" id="username" placeholder="Nombre de Usuario" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <select id="role" required>
+                <option value="">Selecciona tu rol</option>
+                <option value="profesor">Profesor</option>
+                <option value="estudiante">Estudiante</option>
+                <option value="admin">Administrador</option>
+            </select>
+            <button type="submit">Iniciar Sesión</button>
+            <div id="loginMsg"></div>
+        </form>
+    </div>
+
+    <script>
+    // Inicializar cuentas predeterminadas
+    const defaultAccounts = [
+        { username: "admin1", password: "password3", role: "admin" },
+        { username: "profesor1", password: "password1", role: "profesor" },
+        { username: "estudiante1", password: "password2", role: "estudiante" }
+    ];
+
+    // Guardar cuentas predeterminadas en localStorage si no existen
+    if (!localStorage.getItem('accounts')) {
+        localStorage.setItem('accounts', JSON.stringify(defaultAccounts));
+    }
+
+    function login() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const role = document.getElementById("role").value;
+        const loginMsgDiv = document.getElementById("loginMsg");
+
+        // Obtener cuentas del almacenamiento local
+        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        const account = accounts.find(acc => acc.username === username && acc.password === password && acc.role === role);
+
+        if (account) {
+            // Redirigir según el rol
+            if (account.role === "profesor") {
+                window.location.href = "professor_dashboard.html"; // Redirigir al panel del profesor
+            } else if (account.role === "estudiante") {
+                window.location.href = "student_dashboard.html"; // Redirigir al panel del estudiante
+            } else if (account.role === "admin") {
+                window.location.href = "admin_dashboard.html"; // Redirigir al panel del administrador
+            }
+        } else {
+            loginMsgDiv.innerText = "Nombre de usuario, contraseña o rol incorrectos.";
+        }
+        return false; // Evitar el envío del formulario
+    }
+    </script>
+</body>
+</html>

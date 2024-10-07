@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Profesor</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Estilo básico para los cuadros */
+        .container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Bienvenido, Profesor</h2>
+
+    <button onclick="logout()">Cerrar Sesión</button>
+
+    <script>
+    function logout() {
+        window.location.href = "index.html";
+    }
+    </script>
+
+    <div class="container">
+        <h3>Crear Nueva Tarea</h3>
+        <form onsubmit="return createTask()">
+            <label for="taskName">Nombre de la Tarea:</label>
+            <input type="text" id="taskName" required>
+            <label for="taskDescription">Descripción de la Tarea:</label>
+            <textarea id="taskDescription" required></textarea>
+            <label for="dueDate">Fecha de Entrega:</label>
+            <input type="date" id="dueDate" required>
+            <label for="studentSelect">Destinatario:</label>
+            <select id="studentSelect" required>
+                <option value="estudiante1">Estudiante 1</option>
+                <option value="estudiante2">Estudiante 2</option>
+                <option value="estudiante3">Estudiante 3</option>
+            </select>
+            <button type="submit">Crear Tarea</button>
+            <div id="taskMsg"></div>
+        </form>
+    </div>
+
+    <div class="container">
+        <h3>Tareas Recibidas</h3>
+        <ul id="submissionsList"></ul>
+    </div>
+
+    <div class="container">
+        <h3>Tareas Asignadas</h3>
+        <ul id="tasksList"></ul>
+    </div>
+
+    <script>
+    let tasks = [];
+    let submissions = [];
+
+    function createTask() {
+        const taskName = document.getElementById("taskName").value;
+        const taskDescription = document.getElementById("taskDescription").value;
+        const dueDate = document.getElementById("dueDate").value;
+        const studentSelect = document.getElementById("studentSelect").value;
+        const taskMsgDiv = document.getElementById("taskMsg");
+
+        // Crear una nueva tarea
+        const newTask = { name: taskName, description: taskDescription, dueDate: dueDate, recipient: studentSelect };
+        tasks.push(newTask);
+        taskMsgDiv.innerText = `Tarea "${taskName}" creada exitosamente para ${studentSelect}.`;
+
+        // Limpiar los campos
+        document.getElementById("taskName").value = "";
+        document.getElementById("taskDescription").value = "";
+        document.getElementById("dueDate").value = "";
+        document.getElementById("studentSelect").value = "estudiante1"; // Opción por defecto
+
+        displayTasks(); // Actualizar la lista de tareas
+        return false;
+    }
+
+    function displayTasks() {
+        const tasksList = document.getElementById("tasksList");
+        tasksList.innerHTML = "";
+        tasks.forEach((task, index) => {
+            const li = document.createElement("li");
+            li.innerText = `${task.name} - Fecha de Entrega: ${task.dueDate} - Destinatario: ${task.recipient}`;
+            li.innerHTML += `
+                <button onclick="viewTask(${index})">Ver Descripción</button>
+            `;
+            tasksList.appendChild(li);
+        });
+    }
+
+    function viewTask(index) {
+        const task = tasks[index];
+        alert(`Descripción de la Tarea: ${task.description}\nFecha de Entrega: ${task.dueDate}\nDestinatario: ${task.recipient}`);
+    }
+
+    function fetchSubmissions() {
+        const submissionsList = document.getElementById("submissionsList");
+        submissionsList.innerHTML = "";
+        const keys = Object.keys(window.localStorage);
+
+        keys.forEach(key => {
+            const submissionData = JSON.parse(window.localStorage.getItem(key));
+            if (submissionData) {
+                const li = document.createElement("li");
+                li.innerText = `${submissionData.projectName} - Archivo: ${submissionData.fileName}`;
+                li.innerHTML += `
+                    <input type="number" placeholder="Calificación" id="gradeInput-${key}">
+                    <button onclick="gradeSubmission('${key}')">Calificar</button>
+                `;
+                submissionsList.appendChild(li);
+            }
+        });
+    }
+
+    function gradeSubmission(taskName) {
+        const gradeInput = document.getElementById(`gradeInput-${taskName}`);
+        const grade = gradeInput.value;
+
+        if (grade) {
+            const submissionData = JSON.parse(window.localStorage.getItem(taskName));
+            submissionData.grade = grade; // Actualizar la calificación
+
+            // Simulación de guardado en el almacenamiento local
+            alert(`Tarea "${taskName}" calificada con una nota de ${grade}.`);
+            gradeInput.value = ""; // Limpiar campo de calificación
+            fetchSubmissions(); // Actualizar la lista de entregas
+
+            // Actualizar la calificación en el panel del estudiante
+            const studentGrades = JSON.parse(window.localStorage.getItem(submissionData.student)) || [];
+            studentGrades.push({ projectName: submissionData.projectName, grade: grade });
+            window.localStorage.setItem(submissionData.student, JSON.stringify(studentGrades));
+            
+            // Actualizar la lista de calificaciones en el panel del estudiante
+            updateStudentGrades(submissionData.student);
+        }
+    }
+
+    function updateStudentGrades(studentName) {
+        const grades = JSON.parse(window.localStorage.getItem(studentName)) || [];
+        grades.forEach(item => {
+            alert(`La calificación para ${item.projectName} es: ${item.grade}`);
+        });
+    }
+
+    fetchSubmissions();
+    </script>
+</body>
+</html>

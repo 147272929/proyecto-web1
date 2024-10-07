@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Administrador</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Bienvenido, Administrador</h2>
+
+    <button onclick="logout()">Cerrar Sesión</button>
+
+    <script>
+    function logout() {
+        window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
+    }
+    </script>
+
+    <div class="container">
+        <h3>Crear Nueva Cuenta</h3>
+        <form onsubmit="return createAccount()">
+            <label for="username">Nombre de Usuario:</label>
+            <input type="text" id="username" required>
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" required>
+            <label for="role">Rol:</label>
+            <select id="role" required>
+                <option value="profesor">Profesor</option>
+                <option value="estudiante">Estudiante</option>
+                <option value="admin">Administrador</option>
+            </select>
+            <button type="submit">Crear Cuenta</button>
+            <div id="accountMsg"></div>
+        </form>
+    </div>
+
+    <div class="container">
+        <h3>Lista de Cuentas</h3>
+        <ul id="accountsList"></ul>
+    </div>
+
+    <script>
+    // Obtener cuentas del almacenamiento local o inicializar
+    let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+
+    function createAccount() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const role = document.getElementById("role").value;
+        const accountMsgDiv = document.getElementById("accountMsg");
+
+        // Verificar si la cuenta ya existe
+        const accountExists = accounts.some(account => account.username === username);
+        if (accountExists) {
+            accountMsgDiv.innerText = `La cuenta "${username}" ya existe.`;
+            return false;
+        }
+
+        // Crear nueva cuenta
+        const newAccount = { username: username, password: password, role: role };
+        accounts.push(newAccount);
+        localStorage.setItem('accounts', JSON.stringify(accounts)); // Guardar en el almacenamiento local
+        accountMsgDiv.innerText = `Cuenta "${username}" creada exitosamente con el rol de ${role}.`;
+
+        // Limpiar los campos
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("role").value = "profesor"; // Opción por defecto
+
+        displayAccounts(); // Actualizar la lista de cuentas
+        return false;
+    }
+
+    function displayAccounts() {
+        const accountsList = document.getElementById("accountsList");
+        accountsList.innerHTML = "";
+
+        accounts.forEach((account) => {
+            const li = document.createElement("li");
+            li.innerText = `${account.username} - Rol: ${account.role}`;
+            accountsList.appendChild(li);
+        });
+    }
+
+    // Mostrar cuentas al cargar la página
+    window.onload = displayAccounts;
+    </script>
+</body>
+</html>

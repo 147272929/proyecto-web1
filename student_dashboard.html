@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Estudiante</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Estilo básico para los cuadros */
+        .container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Bienvenido, Estudiante</h2>
+
+    <button onclick="logout()">Cerrar Sesión</button>
+
+    <script>
+    function logout() {
+        window.location.href = "index.html";
+    }
+    </script>
+
+    <div class="container">
+        <h3>Tareas Recibidas</h3>
+        <ul id="receivedTasksList"></ul>
+    </div>
+
+    <div class="container">
+        <h3>Tareas Calificadas</h3>
+        <ul id="gradedTasksList"></ul>
+    </div>
+
+    <div class="container">
+        <h3>Notas de Tareas</h3>
+        <ul id="gradesList"></ul>
+    </div>
+
+    <script>
+    let receivedTasks = [];
+    let gradedTasks = [];
+    let grades = [];
+
+    // Simular tareas recibidas
+    function initializeReceivedTasks() {
+        receivedTasks = [
+            { name: "Tarea 1", description: "Descripción de la Tarea 1", dueDate: "2024-10-10", submitted: false },
+            { name: "Tarea 2", description: "Descripción de la Tarea 2", dueDate: "2024-10-15", submitted: false },
+        ];
+        displayReceivedTasks();
+    }
+
+    function displayReceivedTasks() {
+        const receivedTasksList = document.getElementById("receivedTasksList");
+        receivedTasksList.innerHTML = "";
+
+        receivedTasks.forEach((task, index) => {
+            const li = document.createElement("li");
+            li.innerText = `${task.name} - Fecha de Entrega: ${task.dueDate}`;
+            li.innerHTML += `
+                <button onclick="viewTask('${index}')">Ver Descripción</button>
+                <form onsubmit="return submitAssignment('${index}')">
+                    <input type="file" id="fileInput-${index}" accept=".pdf" required>
+                    <button type="submit">Enviar PDF</button>
+                </form>
+            `;
+            receivedTasksList.appendChild(li);
+        });
+    }
+
+    function viewTask(index) {
+        const task = receivedTasks[index];
+        alert(`Descripción de la Tarea: ${task.description}\nFecha de Entrega: ${task.dueDate}`);
+    }
+
+    function submitAssignment(index) {
+        const fileInput = document.getElementById(`fileInput-${index}`);
+        const file = fileInput.files[0];
+
+        if (file) {
+            const taskName = receivedTasks[index].name;
+
+            // Simular la entrega de un archivo PDF al profesor
+            const newGradedTask = { projectName: taskName, fileName: file.name, grade: "No calificado", student: "Estudiante 1" };
+            gradedTasks.push(newGradedTask);
+            receivedTasks[index].submitted = true; // Marcar como entregada
+
+            // Enviar la tarea al profesor
+            window.localStorage.setItem(taskName, JSON.stringify(newGradedTask));
+
+            alert(`PDF enviado para la tarea "${taskName}".`);
+            fileInput.value = "";
+            displayReceivedTasks();
+            displayGradedTasks();
+            updateGrades(); // Actualizar las notas
+        }
+        return false;
+    }
+
+    function displayGradedTasks() {
+        const gradedTasksList = document.getElementById("gradedTasksList");
+        gradedTasksList.innerHTML = "";
+
+        gradedTasks.forEach(task => {
+            const li = document.createElement("li");
+            li.innerText = `${task.projectName} - Archivo: ${task.fileName} - Calificación: ${task.grade}`;
+            gradedTasksList.appendChild(li);
+        });
+    }
+
+    function updateGrades() {
+        const gradesList = document.getElementById("gradesList");
+        gradesList.innerHTML = "";
+
+        const keys = Object.keys(window.localStorage);
+        keys.forEach(key => {
+            const submissionData = JSON.parse(window.localStorage.getItem(key));
+            if (submissionData) {
+                const li = document.createElement("li");
+                li.innerText = `${submissionData.projectName} - Calificación: ${submissionData.grade}`;
+                gradesList.appendChild(li);
+            }
+        });
+
+        // Cargar las notas de cada estudiante desde localStorage
+        const studentGrades = JSON.parse(window.localStorage.getItem("Estudiante 1")) || [];
+        studentGrades.forEach(item => {
+            const li = document.createElement("li");
+            li.innerText = `${item.projectName} - Calificación: ${item.grade}`;
+            gradesList.appendChild(li);
+        });
+    }
+
+    initializeReceivedTasks();
+    displayGradedTasks();
+    updateGrades();
+    </script>
+</body>
+</html>
